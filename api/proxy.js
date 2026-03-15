@@ -1,49 +1,49 @@
 const fetch = require('node-fetch');
 
-export default async function handler(req, res) {
-    const targetUrl = req.query.url;
-    if (!targetUrl) {
-        return res.status(400).send('Missing url parameter. Usage: /api/proxy?url=YOUR_M3U8_URL');
+module.exports = async (req, res) => {
+    const { url } = req.query;
+
+    if (!url) {
+        return res.status(400).send('Missing URL parameter');
     }
 
     try {
-        const response = await fetch(targetUrl, {
+        const response = await fetch(url, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko)',
-                'Referer': new URL(targetUrl).origin
-            },
-            timeout: 9000 // 略低于 Vercel 的 10s 限制
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+                'Referer': new URL(url).origin
+            }
         });
 
-        const contentType = response.headers.get('content-type') || '';
-        
-        // 处理 M3U8 列表
-        if (contentType.includes('mpegurl') || targetUrl.includes('.m3u8')) {
-            let text = await response.text();
-            const baseUrl = new URL(targetUrl);
-            const proxyBase = `https://${req.headers.host}/api/proxy?url=`;
+        const data = await response.text();
 
-            const rewrittenText = text.split('\n').map(line => {
-                const trimmed = line.trim();
-                if (!trimmed || trimmed.startsWith('#')) return line;
-                // 将相对地址补全为绝对地址并再次包装代理
-                const absoluteUrl = new URL(trimmed, baseUrl.href).href;
-                return `${proxyBase}${encodeURIComponent(absoluteUrl)}`;
-            }).join('\n');
+        // 核心逻辑：补全 M3U8 内的相对路径
+        const urlObj = new URL(url);
+        // 获取基础路径，例如 http://.../live/hoy/
+        const baseUrl = urlObj.href.substring(0, urlObj.href.lastIndexOf('/') + 1);
 
-            res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            return res.send(rewrittenText);
-        }
+        // 处理 M3U8 内容
+        const modifiedData = data.split('\n').map(line => {
+            line = line.trim();
+            if (line === '' || line.startsWith('#')) {
+                // 如果是 Key 的 URI 路径，也需要补全
+                if (line.includes('URI="') && !line.includes('://')) {
+                    return line.replace('URI="', `URI="${baseUrl}`);
+                }
+                return line;
+            }
+            // 如果链接不是以 http 开头，就补全它
+            if (!line.startsWith('http')) {
+                return baseUrl + line;
+            }
+            return line;
+        }).join('\n');
 
-        // 处理 TS 切片或其它二进制流
-        const arrayBuffer = await response.arrayBuffer();
-        res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
         res.setHeader('Access-Control-Allow-Origin', '*');
-        return res.send(Buffer.from(arrayBuffer));
+        res.status(200).send(modifiedData);
 
-    } catch (e) {
-        console.error('Proxy Error:', e.message);
-        return res.status(500).send('Proxy Error: ' + e.message);
+    } catch (error) {
+        res.status(500).send('Error fetching the stream: ' + error.message);
     }
-}
+};
