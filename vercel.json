@@ -3,10 +3,5 @@
   "regions": ["hkg1"],
   "rewrites": [
     { "source": "/api/proxy", "destination": "/api/proxy.js" }
-  ],
-  "functions": {
-    "api/proxy.js": {
-      "runtime": "nodejs22.x"
-    }
-  }
+  ]
 }
