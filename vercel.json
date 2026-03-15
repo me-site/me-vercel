@@ -1,11 +1,15 @@
 {
   "version": 2,
   "regions": ["hkg1"],
+  "public": true,
   "rewrites": [
-    {
-      "source": "/api/proxy",
-      "destination": "/api/proxy.js"
+    { "source": "/api/proxy", "destination": "/api/proxy.js" }
+  ],
+  "functions": {
+    "api/proxy.js": {
+      "runtime": "nodejs18.x",
+      "memory": 1024,
+      "maxDuration": 10
     }
-  ]
+  }
 }
-
