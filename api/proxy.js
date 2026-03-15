@@ -2,10 +2,12 @@ const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
     const { url } = req.query;
+    if (!url) return res.status(400).send('Missing URL');
 
-    if (!url) {
-        return res.status(400).send('Missing URL parameter');
-    }
+    // 获取当前请求的域名，用于拼接代理地址
+    const host = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const proxyBase = `${protocol}://${host}/api/proxy?url=`;
 
     try {
         const response = await fetch(url, {
@@ -16,27 +18,25 @@ module.exports = async (req, res) => {
         });
 
         const data = await response.text();
-
-        // 核心逻辑：补全 M3U8 内的相对路径
         const urlObj = new URL(url);
-        // 获取基础路径，例如 http://.../live/hoy/
         const baseUrl = urlObj.href.substring(0, urlObj.href.lastIndexOf('/') + 1);
 
-        // 处理 M3U8 内容
         const modifiedData = data.split('\n').map(line => {
             line = line.trim();
             if (line === '' || line.startsWith('#')) {
-                // 如果是 Key 的 URI 路径，也需要补全
-                if (line.includes('URI="') && !line.includes('://')) {
-                    return line.replace('URI="', `URI="${baseUrl}`);
+                // 处理 Key 的 URI
+                if (line.includes('URI="')) {
+                    return line.replace(/URI="([^"]+)"/, (m, p1) => {
+                        const abs = p1.startsWith('http') ? p1 : baseUrl + p1;
+                        return `URI="${proxyBase}${encodeURIComponent(abs)}"`;
+                    });
                 }
                 return line;
             }
-            // 如果链接不是以 http 开头，就补全它
-            if (!line.startsWith('http')) {
-                return baseUrl + line;
-            }
-            return line;
+            
+            // 核心修改：无论原地址是什么，统统包上一层代理
+            const absoluteUrl = line.startsWith('http') ? line : baseUrl + line;
+            return `${proxyBase}${encodeURIComponent(absoluteUrl)}`;
         }).join('\n');
 
         res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
@@ -44,6 +44,6 @@ module.exports = async (req, res) => {
         res.status(200).send(modifiedData);
 
     } catch (error) {
-        res.status(500).send('Error fetching the stream: ' + error.message);
+        res.status(500).send('Proxy Error: ' + error.message);
     }
 };
