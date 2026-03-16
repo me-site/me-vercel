@@ -1,23 +1,9 @@
 {
-  "version": 2,
-  "builds": [
+  "regions": ["hkg1"],
+  "rewrites": [
     {
-      "src": "edge/functions/index.js",
-      "use": "@vercel/edge"
-    },
-    {
-      "src": "edge/functions/hongkong.js",
-      "use": "@vercel/edge"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/edge/functions/index.js"
-    },
-    {
-      "src": "/hongkong/(.*)",
-      "dest": "/edge/functions/hongkong.js"
+      "source": "/proxy/:path*",
+      "destination": "https://example-live-stream.com/:path*"
     }
   ]
 }
