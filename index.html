@@ -14,9 +14,16 @@ body {
 
 .serverinfo{
     margin-top:30px;
-    padding:15px;
-    border-radius:8px;
+    padding:12px;
+    border-radius:6px;
     background:#f2f2f2;
+    font-size:13px;
+    line-height:1.6;
+}
+
+.serverinfo h3{
+    margin-top:0;
+    font-size:14px;
 }
 </style>
 </head>
@@ -32,7 +39,6 @@ body {
 <br>
 <p><em>感谢您使用 Nginx.</em></p>
 
-<!-- 新增服务器信息 -->
 <div class="serverinfo">
 
 <h3>服务器信息</h3>
@@ -45,15 +51,29 @@ body {
 
 <script>
 
-// 获取访问者 IP + 归属地
+// 国家中文映射
+const countryCN = {
+"Singapore":"新加坡",
+"United States":"美国",
+"Japan":"日本",
+"China":"中国",
+"Germany":"德国",
+"United Kingdom":"英国",
+"France":"法国",
+"Hong Kong":"中国香港",
+"Taiwan":"中国台湾"
+};
+
+// 获取访问者IP
 fetch("https://ipapi.co/json/")
 .then(res=>res.json())
 .then(data=>{
+let country = countryCN[data.country_name] || data.country_name;
 document.getElementById("clientip").textContent =
-data.ip + " (" + data.country_name + " " + data.region + ")";
+data.ip + " (" + country + " " + data.region + ")";
 });
 
-// 获取服务器 IP (解析域名)
+// 获取服务器IP
 fetch("https://dns.google/resolve?name="+location.hostname+"&type=A")
 .then(res=>res.json())
 .then(d=>{
@@ -62,8 +82,10 @@ let ip=d.Answer[0].data;
 fetch("https://ipapi.co/"+ip+"/json/")
 .then(r=>r.json())
 .then(g=>{
+let country = countryCN[g.country_name] || g.country_name;
+
 document.getElementById("serverip").textContent =
-ip + " (" + g.country_name + " " + g.region + ")";
+ip + " (" + country + " " + g.region + ")";
 });
 });
 
