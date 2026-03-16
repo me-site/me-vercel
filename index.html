@@ -2,51 +2,69 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>Nginx 服务器信息</title>
-
+<link rel="icon" href="https://me.ug.cx/ico/nginx.ico" type="image/x-icon">
+<title>欢迎来到 Nginx！</title>
 <style>
-body{
-width:40em;
-margin:0 auto;
-font-family:Tahoma,Verdana,Arial,sans-serif;
+html { color-scheme: light dark; }
+body {
+    width: 35em;
+    margin: 0 auto;
+    font-family: Tahoma, Verdana, Arial, sans-serif;
 }
 
-.info{
-background:#f2f2f2;
-padding:15px;
-border-radius:8px;
-margin-top:20px;
+.serverinfo{
+    margin-top:30px;
+    padding:15px;
+    border-radius:8px;
+    background:#f2f2f2;
 }
 </style>
-
 </head>
-
 <body>
-
 <h1>欢迎来到 Nginx！</h1>
+<br>
+<p>如果你看到这个页面，说明 Nginx 网页服务器已经正确安装并开始工作，需要进一步配置。</p>
+<p>有关在线文档和支持，请参阅
+<a href="https://nginx.org/">nginx.org</a>.<br/>
+商业支持可通过
+<a href="https://nginx.com/">nginx.com</a> 获得
+</p>
+<br>
+<p><em>感谢您使用 Nginx.</em></p>
 
-<div class="info">
+<!-- 新增服务器信息 -->
+<div class="serverinfo">
 
-<p><b>服务器地址：</b> <span id="server"></span></p>
+<h3>服务器信息</h3>
 
-<p><b>访问域名：</b> <span id="host"></span></p>
+<p><b>服务器IP：</b> <span id="serverip">检测中...</span></p>
 
-<p><b>完整访问地址：</b> <span id="url"></span></p>
-
-<p><b>访问者IP：</b> <span id="ip">检测中...</span></p>
+<p><b>访问者IP：</b> <span id="clientip">检测中...</span></p>
 
 </div>
 
 <script>
 
-document.getElementById("server").textContent = location.host;
-document.getElementById("host").textContent = location.host;
-document.getElementById("url").textContent = location.href;
+// 获取访问者 IP + 归属地
+fetch("https://ipapi.co/json/")
+.then(res=>res.json())
+.then(data=>{
+document.getElementById("clientip").textContent =
+data.ip + " (" + data.country_name + " " + data.region + ")";
+});
 
-fetch("https://api.ipify.org?format=json")
-.then(r=>r.json())
+// 获取服务器 IP (解析域名)
+fetch("https://dns.google/resolve?name="+location.hostname+"&type=A")
+.then(res=>res.json())
 .then(d=>{
-document.getElementById("ip").textContent=d.ip;
+let ip=d.Answer[0].data;
+
+fetch("https://ipapi.co/"+ip+"/json/")
+.then(r=>r.json())
+.then(g=>{
+document.getElementById("serverip").textContent =
+ip + " (" + g.country_name + " " + g.region + ")";
+});
 });
 
 </script>
