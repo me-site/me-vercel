@@ -8,21 +8,17 @@
 <style>
 html { color-scheme: light dark; }
 
-body {
-    width: 40em;
-    margin: 0 auto;
-    font-family: Tahoma, Verdana, Arial, sans-serif;
+body{
+    width:40em;
+    margin:0 auto;
+    font-family:Tahoma,Verdana,Arial,sans-serif;
 }
 
-.info {
-    background: #f2f2f2;
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 15px;
-}
-
-.dark .info{
-    background:#222;
+.info{
+    background:#f2f2f2;
+    padding:15px;
+    border-radius:8px;
+    margin-top:20px;
 }
 </style>
 
@@ -35,41 +31,35 @@ body {
 <p>如果你看到这个页面，说明 Nginx 网页服务器已经正确安装并开始工作。</p>
 
 <div class="info">
-<h3>服务器信息</h3>
 
-<p><b>服务器地址：</b> 你的服务器IP或域名</p>
+<p><b>服务器地址：</b> me-vercel-gamma.vercel.app</p>
 
 <p><b>访问域名：</b> <span id="host"></span></p>
 
 <p><b>完整访问地址：</b> <span id="url"></span></p>
 
-<p><b>客户端浏览器：</b> <span id="ua"></span></p>
-
-<p><b>当前时间：</b> <span id="time"></span></p>
+<p><b>访问者IP：</b> <span id="ip">检测中...</span></p>
 
 </div>
 
 <br>
 
-<p>有关在线文档和支持，请参阅
-<a href="https://nginx.org/">nginx.org</a>。</p>
-
 <p><em>感谢您使用 Nginx.</em></p>
 
 <script>
 
-document.getElementById("host").innerText = location.host;
+document.getElementById("host").textContent = window.location.host;
+document.getElementById("url").textContent = window.location.href;
 
-document.getElementById("url").innerText = location.href;
-
-document.getElementById("ua").innerText = navigator.userAgent;
-
-function updateTime(){
-    document.getElementById("time").innerText = new Date().toLocaleString();
-}
-
-updateTime();
-setInterval(updateTime,1000);
+// 获取访问IP
+fetch("https://api.ipify.org?format=json")
+.then(res => res.json())
+.then(data => {
+    document.getElementById("ip").textContent = data.ip;
+})
+.catch(()=>{
+    document.getElementById("ip").textContent = "获取失败";
+});
 
 </script>
 
