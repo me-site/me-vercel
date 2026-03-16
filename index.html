@@ -17,16 +17,10 @@ body {
     padding:12px;
     border-radius:6px;
     background:#f2f2f2;
-    font-weight: normal;       /* 不加粗 */
-    font-size:16px;            /* 和感谢您使用 Nginx. 一样 */
-    font-family: Tahoma, Verdana, Arial, sans-serif; /* 一致字体 */
+    font-weight: normal;      
+    font-size:16px;           
+    font-family: Tahoma, Verdana, Arial, sans-serif; 
     line-height:1.6;
-}
-
-.serverinfo h3{
-    margin-top:0;
-    font-weight: normal;
-    font-size:16px;
 }
 </style>
 </head>
@@ -42,15 +36,14 @@ body {
 <br>
 <p><em>感谢您使用 Nginx.</em></p>
 
-<!-- 服务器信息 -->
+<!-- 新增服务器和访问者信息 -->
 <div class="serverinfo">
-
 <p>服务器IP：<span id="serverip">检测中...</span></p>
 <p>访问者IP：<span id="clientip">检测中...</span></p>
-
 </div>
 
 <script>
+// 国家中文映射
 const countryCN = {
   "Singapore":"新加坡",
   "United States":"美国",
@@ -60,7 +53,7 @@ const countryCN = {
   "Japan":"日本"
 };
 
-// 获取服务器IP
+// 获取服务器IP（通过 Vercel Serverless API）
 fetch("/api/serverip")
 .then(res => res.json())
 .then(data=>{
@@ -72,8 +65,8 @@ fetch("/api/serverip")
   document.getElementById("serverip").textContent = "获取失败";
 });
 
-// 获取访问者IP
-fetch("https://ipwhois.app/json/")   // 仍然用可靠API
+// 获取访问者IP（使用可靠API）
+fetch("https://ipwhois.app/json/")
 .then(res => res.json())
 .then(data=>{
   const country = countryCN[data.country] || data.country;
@@ -84,5 +77,6 @@ fetch("https://ipwhois.app/json/")   // 仍然用可靠API
   document.getElementById("clientip").textContent = "获取失败";
 });
 </script>
+
 </body>
 </html>
