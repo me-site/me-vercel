@@ -2,9 +2,6 @@
   "version": 2,
   "regions": ["hkg1"],
   "rewrites": [
-    {
-      "source": "/proxy",
-      "destination": "/api/proxy"
-    }
+    { "source": "/proxy", "destination": "/api/proxy" }
   ]
 }
